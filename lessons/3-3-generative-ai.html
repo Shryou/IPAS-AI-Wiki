@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="生成式 AI 技術與應用的互動模型圖、考點與練習。">
+  <title>3.3 生成式 AI 技術與應用｜iPAS 圖解學習站</title>
+  <link rel="stylesheet" href="../assets/css/site.css">
+  <script defer src="../assets/js/site.js"></script>
+</head>
+<body class="generative">
+  <a class="skip" href="#main">跳至主要內容</a>
+  <header class="site-header">
+    <div class="frame">
+      <a class="brand" href="../index.html"><span class="brand-mark">L21</span> iPAS 圖解學習站</a>
+      <nav class="top-nav" aria-label="網站導覽"><a href="../index.html#lessons">← 回章節索引</a><a href="../index.html#materials">PDF 講義</a></nav>
+    </div>
+  </header>
+  <main id="main" class="frame" tabindex="-1">
+    <div class="hero hero-grid">
+      <div>
+        <p class="eyebrow hero-kicker"><span>3.3 · L21103</span> 生成模型</p>
+        <h1>生成式 AI 技術與應用</h1>
+        <p>從潛在取樣、對抗訓練到逐步去噪，切換模型圖看看不同系統如何產生新內容，再用查詢案例練習驗證。</p>
+        <a class="button-link" href="#concepts">開始操作模型圖 ↓</a>
+      </div>
+      <svg class="chapter-art" viewBox="0 0 320 144" role="img" aria-label="由雜訊逐步生成影像" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><circle cx="49" cy="35" r="4"/><circle cx="69" cy="69" r="6"/><circle cx="43" cy="95" r="5"/><circle cx="91" cy="40" r="3"/><circle cx="96" cy="93" r="4"/><circle cx="58" cy="113" r="3"/></g><path d="M117 72h61m-15-10 15 10-15 10" fill="none" stroke="currentColor" stroke-width="3"/><rect x="194" y="27" width="81" height="90" rx="9" fill="#fff9fb" stroke="currentColor" stroke-width="3"/><path d="M203 101l24-31 14 12 13-20 12 39z" fill="currentColor"/><circle cx="253" cy="50" r="7" fill="#d594a9"/></svg>
+    </div>
+    <div class="lesson-grid">
+      <nav class="toc" aria-label="章內目錄">
+        <strong>章內目錄</strong>
+        <ul>
+          <li><a href="#overview">重點速覽</a></li>
+          <li><a href="#concepts">模型圖與核心知識</a></li>
+          <li><a href="#exam-focus">考試重點與常見混淆</a></li>
+          <li><a href="#practice">練習題</a></li>
+          <li><a href="#review">考前 3 分鐘複習</a></li>
+          <li><a href="#sources">教材來源</a></li>
+          <li><a href="#answers">章末解析</a></li>
+        </ul>
+      </nav>
+      <div class="lesson-content">
+        <section id="overview">
+          <h2>重點速覽</h2>
+          <p class="meta">閱讀時間估算約 15–20 分鐘</p><p>從三張模型路線圖判斷生成方式，再用圖像與客服案例練習選擇控制和驗證方法。</p><ul><li>VAE 透過機率式潛在空間取樣；GAN 用生成器和判別器對抗。</li><li>擴散模型的生成方向是由噪聲逐步去噪。</li><li>提示改變當次條件；微調會透過訓練改變參數。</li><li>代理能查工具與管理狀態，證據和權限仍須查核。</li></ul>
+        </section>
+        <section id="concepts">
+          <h2>模型圖與核心知識</h2>
+          <p>生成式 AI（Generative AI）建模資料或條件分布，能產生文字、影像、聲音等樣本。鑑別式方法（Discriminative Method）通常直接學習輸入到標籤的關係。模型家族與應用任務可以交叉，例如生成式文字模型也能依提示做分類。</p>
+          <figure class="model-demo" id="gen-family" data-model-demo aria-labelledby="gen-family-title">
+            <h3 id="gen-family-title">模型圖 01 · 三種生成模型各自學什麼</h3>
+            <div class="model-controls" data-model-controls role="group" aria-label="模型圖 01 · 三種生成模型各自學什麼" hidden>
+              <button type="button" data-model-select="vae">VAE</button>
+              <button type="button" data-model-select="gan">GAN</button>
+              <button type="button" data-model-select="diffusion">擴散模型</button>
+            </div>
+            <div class="model-state" data-model-state="vae">
+              <strong>VAE</strong>
+              <ol class="model-flow"><li><span class="step-index">01</span><strong>編碼器</strong><span>估計潛在分布</span></li><li><span class="step-index">→ 02</span><strong>潛在空間</strong><span>取樣得到 z</span></li><li><span class="step-index">→ 03</span><strong>解碼器</strong><span>重建訓練樣本</span></li></ol>
+              <p>變分自編碼器（Variational Autoencoder, VAE）兼顧重建與潛在分布正則化。生成新樣本時，從先驗取樣後解碼。</p>
+            </div>
+            <div class="model-state" data-model-state="gan">
+              <strong>GAN</strong>
+              <ol class="model-flow"><li><span class="step-index">01</span><strong>生成器 G</strong><span>從隨機輸入造樣本</span></li><li><span class="step-index">→ 02</span><strong>判別器 D</strong><span>比較真實與生成樣本</span></li><li><span class="step-index">→ 03</span><strong>對抗回饋</strong><span>兩方依各自目標更新</span></li></ol>
+              <p>生成對抗網路（Generative Adversarial Network, GAN）由 G 和 D 對抗學習。生成階段通常由 G 產出樣本。</p>
+            </div>
+            <div class="model-state" data-model-state="diffusion">
+              <strong>擴散模型</strong>
+              <ol class="model-flow"><li><span class="step-index">01</span><strong>訓練資料</strong><span>在不同時間步加入噪聲</span></li><li><span class="step-index">→ 02</span><strong>學習去噪</strong><span>估計噪聲或等價目標</span></li><li><span class="step-index">→ 03</span><strong>生成</strong><span>由噪聲反覆去噪</span></li></ol>
+              <p>擴散模型（Diffusion Model）學會反向轉換。部分模型在潛在空間去噪，最後才解碼成影像。</p>
+            </div>
+            <figcaption>教學示意。並排的是三種訓練與生成觀念。方塊省略損失細節。</figcaption>
+          </figure>
+          <p>模式崩潰（Mode Collapse）會使 GAN 反覆產出少數類型。Wasserstein GAN（WGAN）以 critic 的實數分數估計分布差異，訓練仍須驗證樣本多樣性。VAE 的重建效果也受模型和資料限制。</p>
+          <figure class="model-demo" id="gen-noise" data-model-demo aria-labelledby="gen-noise-title">
+            <h3 id="gen-noise-title">模型圖 02 · 從噪聲到樣本</h3>
+            <div class="model-controls" data-model-controls role="group" aria-label="模型圖 02 · 從噪聲到樣本" hidden>
+              <button type="button" data-model-select="noise">01 · 噪聲起點</button>
+              <button type="button" data-model-select="structure">02 · 逐步去噪</button>
+              <button type="button" data-model-select="sample">03 · 樣本輸出</button>
+            </div>
+            <div class="model-state" data-model-state="noise">
+              <strong>01 · 噪聲起點</strong>
+              <svg class="model-scene" viewBox="0 0 320 144" role="img" aria-label="畫面大多由隨機色塊構成" xmlns="http://www.w3.org/2000/svg"><rect x="55" y="10" width="210" height="124" rx="8" fill="#f6dde7"/><circle cx="211" cy="41" r="14" fill="#b36680"/><path d="M56 126L111 58l32 34 33-47 87 81Z" fill="#8f405d"/><path d="M57 128l81-30 63 30Z" fill="#55324a"/>
+      <defs><pattern id="noise-high" width="56" height="44" patternUnits="userSpaceOnUse">
+        <rect width="56" height="44" fill="#a0748a"/>
+        <path d="M0 0h16v8H0Zm32 0h16v8H32ZM8 16h8v8H8Zm16 8h16v8H24Zm16 16h16v4H40Z" fill="#543949"/>
+        <path d="M16 0h8v16h-8ZM0 32h16v12H0ZM40 16h16v8H40ZM32 8h16v8H32Z" fill="#ead1dd"/>
+        <path d="M24 0h8v8h-8Zm0 16h8v8h-8ZM8 24h8v8H8ZM48 32h8v8h-8Z" fill="#cc92a9"/>
+      </pattern></defs>
+      <rect x="55" y="10" width="210" height="124" rx="8" fill="url(#noise-high)" opacity=".93"/>
+    </svg>
+              <p>反向生成可從隨機噪聲開始。</p>
+            </div>
+            <div class="model-state" data-model-state="structure">
+              <strong>02 · 逐步去噪</strong>
+              <svg class="model-scene" viewBox="0 0 320 144" role="img" aria-label="雜訊中的山形逐漸可辨認" xmlns="http://www.w3.org/2000/svg"><rect x="55" y="10" width="210" height="124" rx="8" fill="#f6dde7"/><circle cx="211" cy="41" r="14" fill="#b36680"/><path d="M56 126L111 58l32 34 33-47 87 81Z" fill="#8f405d"/><path d="M57 128l81-30 63 30Z" fill="#55324a"/>
+      <defs><pattern id="noise-mid" width="56" height="44" patternUnits="userSpaceOnUse">
+        <rect width="56" height="44" fill="#a0748a"/>
+        <path d="M0 0h16v8H0Zm32 0h16v8H32ZM8 16h8v8H8Zm16 8h16v8H24Zm16 16h16v4H40Z" fill="#543949"/>
+        <path d="M16 0h8v16h-8ZM0 32h16v12H0ZM40 16h16v8H40ZM32 8h16v8H32Z" fill="#ead1dd"/>
+        <path d="M24 0h8v8h-8Zm0 16h8v8h-8ZM8 24h8v8H8ZM48 32h8v8h-8Z" fill="#cc92a9"/>
+      </pattern></defs>
+      <rect x="55" y="10" width="210" height="124" rx="8" fill="url(#noise-mid)" opacity=".49"/>
+    </svg>
+              <p>模型反覆估計去噪方向。文字條件可以在去噪過程影響生成方向。</p>
+            </div>
+            <div class="model-state" data-model-state="sample">
+              <strong>03 · 樣本輸出</strong>
+              <svg class="model-scene" viewBox="0 0 320 144" role="img" aria-label="顯示山形和太陽的最終樣本" xmlns="http://www.w3.org/2000/svg"><rect x="55" y="10" width="210" height="124" rx="8" fill="#f6dde7"/><circle cx="211" cy="41" r="14" fill="#b36680"/><path d="M56 126L111 58l32 34 33-47 87 81Z" fill="#8f405d"/><path d="M57 128l81-30 63 30Z" fill="#55324a"/></svg>
+              <p>多步更新後得到樣本。若運算在潛在空間進行，最後以解碼器轉成圖片。</p>
+            </div>
+            <figcaption>教學示意。色塊與山形為概念動畫的三個畫格，噪聲比例只是示意。</figcaption>
+          </figure>
+          <p>文生圖（Text-to-Image）用文字條件引導生成。若需要維持指定輪廓、姿勢或構圖，可加入空間條件。編輯時以遮罩指定修改區域，驗收還要檢查遮罩外是否被影響。</p>
+          <figure class="model-demo" id="gen-use" data-model-demo aria-labelledby="gen-use-title">
+            <h3 id="gen-use-title">模型圖 03 · 文字模型與代理的輸出有什麼差異</h3>
+            <div class="model-controls" data-model-controls role="group" aria-label="模型圖 03 · 文字模型與代理的輸出有什麼差異" hidden>
+              <button type="button" data-model-select="text">文字模型</button>
+              <button type="button" data-model-select="agent">AI 代理</button>
+            </div>
+            <div class="model-state" data-model-state="text">
+              <strong>文字模型</strong>
+              <ol class="model-flow"><li><span class="step-index">01</span><strong>提示</strong><span>輸入任務與限制</span></li><li><span class="step-index">→ 02</span><strong>下一詞元</strong><span>依前文逐步取樣</span></li><li><span class="step-index">→ 03</span><strong>文字</strong><span>產生回覆草稿</span></li></ol>
+              <p>自迴歸（Autoregressive）文字模型逐步延伸序列；溫度改變取樣分布。</p>
+            </div>
+            <div class="model-state" data-model-state="agent">
+              <strong>AI 代理</strong>
+              <ol class="model-flow"><li><span class="step-index">01</span><strong>判斷</strong><span>需要即時資料</span></li><li><span class="step-index">→ 02</span><strong>使用工具</strong><span>依權限查資料</span></li><li><span class="step-index">→ 03</span><strong>檢查證據</strong><span>驗證日期、來源與結果</span></li><li><span class="step-index">→ 04</span><strong>回覆</strong><span>引用依據或說明缺口</span></li></ol>
+              <p>代理（AI Agent）結合模型、狀態、工具與控制。涉及敏感操作時，依權限與核准流程執行。</p>
+            </div>
+            <figcaption>教學示意。此處以即時查詢展示代理的額外步驟。工具輸出仍須驗證，網頁中的文字也不構成操作授權。</figcaption>
+          </figure>
+          <p>提示工程（Prompt Engineering）安排任務、輸入與輸出格式。若資料需要即時更新，可接檢索或工具；微調（Fine-tuning）則可改變模型的任務行為。評估時分別量事實支持、格式符合、回應延遲和成本。</p>
+          <figure class="model-demo" id="gen-modal" aria-labelledby="gen-modal-title">
+            <h3 id="gen-modal-title">模型圖 04 · 聲音任務的方向</h3>
+            <div class="model-state">
+              <ol class="model-flow"><li><span class="step-index">01</span><strong>ASR</strong><span>聲音 → 文字</span></li><li><span class="step-index">→ 02</span><strong>TTS</strong><span>文字 → 語音</span></li><li><span class="step-index">→ 03</span><strong>驗收</strong><span>辨識錯誤、清晰度與自然度</span></li></ol>
+              <details class="preview" data-preview><summary>查看指標怎麼選</summary><p class="preview-panel">語音辨識可看字錯誤率或詞錯誤率；合成語音可另評自然度、可懂度與延遲。</p></details>
+            </div>
+            <figcaption>教學示意。自動語音辨識（Automatic Speech Recognition, ASR）和文字轉語音（Text-to-Speech, TTS）的輸入與輸出不同。</figcaption>
+          </figure>
+          <p>圖像可比較品質、多樣性與條件符合度。文字重疊分數如 BLEU／ROUGE 可以補充評估，事實仍需核對來源。企業上線應另外查驗授權、敏感資料、提示注入與深偽風險，並為高影響輸出安排人工審核。</p>
+        </section>
+        <section id="exam-focus">
+          <h2>考試重點與常見混淆</h2>
+          <div class="table-wrap" role="region" aria-label="考點表格，可水平捲動" tabindex="0">
+            <table>
+              <thead><tr><th scope="col">知識點</th><th scope="col">優先程度</th><th scope="col">判斷線索</th><th scope="col">依據</th></tr></thead>
+              <tbody>
+                <tr><td>GAN 與 WGAN</td><td><span class="badge">優先掌握</span></td><td>G 造樣本，D 辨來源。WGAN 的 critic 輸出實數評分。</td><td>【歷屆已考】<a href="#source-114">114 年第二次第 20 題</a>。</td></tr>
+                <tr><td>VAE、GAN、擴散</td><td><span class="badge">優先掌握</span></td><td>看訓練時是潛在分布、對抗，還是學習去噪。</td><td>【教材重點】<a href="#source-notes">講義第 4–11 頁</a>。</td></tr>
+                <tr><td>代理與工具查證</td><td><span class="badge">優先掌握</span></td><td>看是否需要即時外部資訊、權限或結果核對。</td><td>【歷屆已考】<a href="#source-115">115 年第一次第 16 題</a>。</td></tr>
+                <tr><td>生成品質與風險</td><td>重要理解</td><td>流暢度、事實支持、使用授權各自驗收。</td><td>【教材重點】<a href="#source-notes">講義第 17–24 頁</a>。</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note">優先程度為本站的學習排序。點選題號可在來源區開啟公告試題。</p>
+        </section>
+        <section id="practice">
+          <h2>練習題</h2>
+          <article class="question"><h3>第 1 題 · 模型辨識</h3><p class="meta">自編模擬題</p><p>一個生成系統用模型 G 產生新樣本，再用模型 D 分辨樣本來自訓練資料還是 G。這是哪種訓練方法？</p><ol type="A"><li>對抗訓練</li><li>逐步去噪</li><li>遮蔽語言建模</li><li>以提示控制格式</li></ol></article>
+          <article class="question"><h3>第 2 題 · 情境判斷</h3><p class="meta">自編模擬題</p><p>公司要產出以文字描述控制的概念圖。工程師想從隨機噪聲開始，多步更新讓樣本成形。最符合哪一種方法？</p><ol type="A"><li>詞袋統計</li><li>物件分類</li><li>擴散生成</li><li>從訓練集直接抽出一張圖片</li></ol></article>
+          <article class="question"><h3>第 3 題 · 工具與驗證</h3><p class="meta">自編模擬題</p><p>代理要回答今天的配送狀態，且有經授權的即時物流查詢工具。應先採取哪個步驟？</p><ol type="A"><li>用預訓練知識猜測狀態</li><li>呼叫查詢工具並核對訂單和資料時間</li><li>提高溫度以增加答對機率</li><li>照抄任何工具結果，省略核對</li></ol></article>
+          <p><a href="#answers">作答後前往章末解析 ↓</a></p>
+        </section>
+        <section id="review">
+          <h2>考前 3 分鐘複習</h2>
+          <ul><li>VAE 取樣再解碼，GAN 讓 G 和 D 對抗。</li><li>擴散由噪聲開始，逐步更新直到得到樣本。</li><li>自迴歸依前文生成下一詞元；溫度影響取樣。</li><li>提示設定當次任務，工具查證外部資訊。</li><li>ASR 與 TTS 的資料方向相反。</li><li>分開檢查內容品質、證據、延遲、成本和授權。</li></ul>
+        </section>
+        <section id="sources">
+          <h2>教材來源</h2>
+          <ul class="source-list">
+            <li>【官方評鑑】<a href="https://www.ipas.org.tw/api/proxy/uploads/certification_attachment/8039a24c849c4fb4a6dd7f942576d4f8/AI應用規劃師能力鑑定_評鑑內容範圍參考_11506_20260602161501.pdf">iPAS 評鑑內容範圍參考 115.06</a>，L21103。</li>
+            <li><a href="https://www.ipas.org.tw/api/proxy/uploads/certification_resource/bf93f438f7be48d295c1b40a34d79f3d/AI%E6%87%89%E7%94%A8%E8%A6%8F%E5%8A%83%E5%B8%AB%28%E4%B8%AD%E7%B4%9A%29-%E5%AD%B8%E7%BF%92%E6%8C%87%E5%BC%95-%E7%A7%91%E7%9B%AE1%E4%BA%BA%E5%B7%A5%E6%99%BA%E6%85%A7%E6%8A%80%E8%A1%93%E6%87%89%E7%94%A8%E8%A6%8F%E5%8A%83_20251222101833.pdf">iPAS 中級科目一學習指引</a>，印刷頁 3-59 至 3-72。</li>
+            <li id="source-notes">【教材重點】<a href="../material/iPAS%E4%B8%AD%E7%B4%9A_L21_3.3_%E7%94%9F%E6%88%90%E5%BC%8FAI%E6%8A%80%E8%A1%93%E8%88%87%E6%87%89%E7%94%A8_%E5%9C%96%E8%A7%A3%E7%B2%BE%E8%AE%80.pdf">3.3 生成式AI技術與應用 圖解精讀 PDF</a>，第 2–13 頁原理、第 14–22 頁應用與評估、第 23–26 頁風險與考點。</li>
+            <li id="source-114">【歷屆已考】<a href="https://www.ipas.org.tw/api/proxy/uploads/certification_resource/bf93f438f7be48d295c1b40a34d79f3d/114%E5%B9%B4%E7%AC%AC%E4%BA%8C%E6%A2%AF%E6%AC%A1%E4%B8%AD%E7%B4%9AAI%E6%87%89%E7%94%A8%E8%A6%8F%E5%8A%83%E5%B8%AB%E7%AC%AC%E4%B8%80%E7%A7%91%E4%BA%BA%E5%B7%A5%E6%99%BA%E6%85%A7%E6%8A%80%E8%A1%93%E6%87%89%E7%94%A8%E8%88%87%E8%A6%8F%E5%8A%83%28%E7%95%B6%E6%AC%A1%E8%A9%A6%E9%A1%8C%E5%85%AC%E5%91%8A114_20251226000616.pdf">114 年第二次中級科目一公告試題</a>，第 20 題。</li>
+            <li id="source-115">【歷屆已考】<a href="https://www.ipas.org.tw/api/proxy/uploads/certification_resource/bf93f438f7be48d295c1b40a34d79f3d/115%E5%B9%B4%E7%AC%AC%E4%B8%80%E6%AC%A1%E4%B8%AD%E7%B4%9AAI%E6%87%89%E7%94%A8%E8%A6%8F%E5%8A%83%E5%B8%AB_%E7%AC%AC%E4%B8%80%E7%A7%91_%E4%BA%BA%E5%B7%A5%E6%99%BA%E6%85%A7%E6%8A%80%E8%A1%93%E6%87%89%E7%94%A8%E8%88%87%E8%A6%8F%E5%8A%83_%E5%85%AC%E5%91%8A%E8%A9%A6%E9%A1%8C_20260615003359.pdf">115 年第一次中級科目一公告試題</a>，第 16 題。</li>
+            <li>模型原始研究 <a href="https://arxiv.org/abs/1312.6114">VAE</a>、<a href="https://arxiv.org/abs/1406.2661">GAN</a>、<a href="https://arxiv.org/abs/2006.11239">DDPM</a>。</li>
+          </ul>
+        </section>
+        <section id="answers">
+          <h2>章末解析</h2>
+          <div class="answer-controls" data-answer-controls hidden>
+            <button type="button" value="open">展開全部</button><button type="button" value="close">收合全部</button>
+          </div>
+          <details class="answer"><summary>第 1 題解析</summary><p><strong>正確答案 A。</strong>G 與 D 有對抗的訓練目標。</p><ol type="A"><li>G 生成，D 區分樣本來源。</li><li>逐步去噪是擴散模型的典型路徑。</li><li>遮蔽預測是語言預訓練目標。</li><li>提示控制影響當次輸出。</li></ol><p><a href="#gen-family">回看對應模型圖</a></p></details>
+          <details class="answer"><summary>第 2 題解析</summary><p><strong>正確答案 C。</strong>擴散的典型反向生成流程反覆去噪，並可利用文字條件。</p><ol type="A"><li>詞袋計數不生成圖像。</li><li>分類輸出通常是標籤或分數。</li><li>去噪與條件生成符合描述。</li><li>直接抽圖沒有多步去噪。</li></ol><p><a href="#gen-noise">回看對應模型圖</a></p></details>
+          <details class="answer"><summary>第 3 題解析</summary><p><strong>正確答案 B。</strong>即時狀態需要查詢當前資料，並核對來源、訂單及時間。</p><ol type="A"><li>模型權重無法直接提供今天的查詢結果。</li><li>授權工具與結果驗證一起滿足需求。</li><li>取樣設定無法補足事實來源。</li><li>回傳資料仍可能過時、失敗或與訂單不符。</li></ol><p><a href="#gen-use">回看對應模型圖</a></p></details>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer"><div class="frame"><p>iPAS 中級 · L21103</p><a href="../index.html#lessons">← 回章節索引</a></div></footer>
+</body>
+</html>

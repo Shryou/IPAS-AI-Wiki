@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="電腦視覺技術與應用的互動模型圖、考點與練習。">
+  <title>3.2 電腦視覺技術與應用｜iPAS 圖解學習站</title>
+  <link rel="stylesheet" href="../assets/css/site.css">
+  <script defer src="../assets/js/site.js"></script>
+</head>
+<body class="vision">
+  <a class="skip" href="#main">跳至主要內容</a>
+  <header class="site-header">
+    <div class="frame">
+      <a class="brand" href="../index.html"><span class="brand-mark">L21</span> iPAS 圖解學習站</a>
+      <nav class="top-nav" aria-label="網站導覽"><a href="../index.html#lessons">← 回章節索引</a><a href="../index.html#materials">PDF 講義</a></nav>
+    </div>
+  </header>
+  <main id="main" class="frame" tabindex="-1">
+    <div class="hero hero-grid">
+      <div>
+        <p class="eyebrow hero-kicker"><span>3.2 · L21102</span> 影像模型</p>
+        <h1>電腦視覺技術與應用</h1>
+        <p>同一張瑕疵影像，會得到類別、邊界框，還是像素遮罩？先切換三種輸出，再走進 CNN 和偵測架構。</p>
+        <a class="button-link" href="#concepts">開始操作模型圖 ↓</a>
+      </div>
+      <svg class="chapter-art" viewBox="0 0 320 144" role="img" aria-label="同一畫面中的兩個偵測框" xmlns="http://www.w3.org/2000/svg"><rect x="43" y="20" width="234" height="104" rx="9" fill="#f6f9ff" stroke="currentColor" stroke-width="2"/><path d="M50 95L97 52l39 28 37-32 75 62H50Z" fill="#c4d9fd"/><circle cx="213" cy="58" r="19" fill="#6b9cd7"/><g fill="none" stroke="currentColor" stroke-width="3"><path d="M72 67V46h22m25 0h22v21m0 14v19h-22m-25 0H72V81M186 49V33h18m16 0h19v16m0 16v18h-19m-16 0h-18V65"/></g></svg>
+    </div>
+    <div class="lesson-grid">
+      <nav class="toc" aria-label="章內目錄">
+        <strong>章內目錄</strong>
+        <ul>
+          <li><a href="#overview">重點速覽</a></li>
+          <li><a href="#concepts">模型圖與核心知識</a></li>
+          <li><a href="#exam-focus">考試重點與常見混淆</a></li>
+          <li><a href="#practice">練習題</a></li>
+          <li><a href="#review">考前 3 分鐘複習</a></li>
+          <li><a href="#sources">教材來源</a></li>
+          <li><a href="#answers">章末解析</a></li>
+        </ul>
+      </nav>
+      <div class="lesson-content">
+        <section id="overview">
+          <h2>重點速覽</h2>
+          <p class="meta">閱讀時間估算約 15–20 分鐘</p><p>先看金屬板的瑕疵案例，再用模型圖判斷該收集哪種標註、採用哪種輸出、如何評估。</p><ul><li>分類給整張影像的類別，偵測加上位置，分割描述像素區域。</li><li>卷積擷取局部特徵，激活增加非線性，池化下採樣。</li><li>YOLO 直接預測；Faster R-CNN 先找候選區域。</li><li>IoU 看兩個區域的重疊，mAP 看一批偵測結果。</li></ul>
+        </section>
+        <section id="concepts">
+          <h2>模型圖與核心知識</h2>
+          <p>電腦視覺（Computer Vision, CV）從影像或影片擷取資訊。以下先看同一張圖在不同任務下會產生什麼輸出。</p>
+          <figure class="model-demo" id="cv-output" data-model-demo aria-labelledby="cv-output-title">
+            <h3 id="cv-output-title">模型圖 01 · 同一張瑕疵圖的三種輸出</h3>
+            <div class="model-controls" data-model-controls role="group" aria-label="模型圖 01 · 同一張瑕疵圖的三種輸出" hidden>
+              <button type="button" data-model-select="classify">分類</button>
+              <button type="button" data-model-select="detect">物件偵測</button>
+              <button type="button" data-model-select="segment">實例分割</button>
+            </div>
+            <div class="model-state" data-model-state="classify">
+              <strong>分類</strong>
+              <svg class="model-scene" viewBox="0 0 320 144" role="img" aria-label="整張圖標記有刮痕" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="10" width="296" height="124" rx="9" fill="#edf3fb"/><rect x="47" y="27" width="226" height="90" rx="15" fill="#c7d6e7" stroke="#778fa8" stroke-width="2"/><circle cx="61" cy="42" r="4" fill="#8299b1"/><circle cx="259" cy="102" r="4" fill="#8299b1"/><path d="M92 72l11-11 9 6 13-16" fill="none" stroke="#43566b" stroke-width="5" stroke-linecap="round"/><path d="M185 93l12-13 9 3 9-15" fill="none" stroke="#43566b" stroke-width="5" stroke-linecap="round"/><rect x="101" y="105" width="118" height="25" rx="5" fill="currentColor"/><text x="160" y="122" text-anchor="middle" fill="white" font-size="13">有刮痕</text></svg>
+              <p>整張圖給一個類別「有刮痕」。</p>
+            </div>
+            <div class="model-state" data-model-state="detect">
+              <strong>物件偵測</strong>
+              <svg class="model-scene" viewBox="0 0 320 144" role="img" aria-label="兩個矩形框各圈住一處刮痕" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="10" width="296" height="124" rx="9" fill="#edf3fb"/><rect x="47" y="27" width="226" height="90" rx="15" fill="#c7d6e7" stroke="#778fa8" stroke-width="2"/><circle cx="61" cy="42" r="4" fill="#8299b1"/><circle cx="259" cy="102" r="4" fill="#8299b1"/><path d="M92 72l11-11 9 6 13-16" fill="none" stroke="#43566b" stroke-width="5" stroke-linecap="round"/><path d="M185 93l12-13 9 3 9-15" fill="none" stroke="#43566b" stroke-width="5" stroke-linecap="round"/><g fill="none" stroke="currentColor" stroke-width="3"><rect x="84" y="43" width="49" height="37"/><rect x="177" y="60" width="47" height="40"/></g></svg>
+              <p>輸出兩個邊界框與各自的類別，能指出大致位置。</p>
+            </div>
+            <div class="model-state" data-model-state="segment">
+              <strong>實例分割</strong>
+              <svg class="model-scene" viewBox="0 0 320 144" role="img" aria-label="遮罩沿兩道刮痕的像素形狀上色" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="10" width="296" height="124" rx="9" fill="#edf3fb"/><rect x="47" y="27" width="226" height="90" rx="15" fill="#c7d6e7" stroke="#778fa8" stroke-width="2"/><circle cx="61" cy="42" r="4" fill="#8299b1"/><circle cx="259" cy="102" r="4" fill="#8299b1"/><path d="M92 72l11-11 9 6 13-16" fill="none" stroke="#43566b" stroke-width="5" stroke-linecap="round"/><path d="M185 93l12-13 9 3 9-15" fill="none" stroke="#43566b" stroke-width="5" stroke-linecap="round"/><g fill="none" stroke-width="11" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M92 72l11-11 9 6 13-16" stroke="#345a9c"/>
+        <path d="M185 93l12-13 9 3 9-15" stroke="#8b415b"/>
+      </g>
+      <g fill="#132a37" font-size="14" font-weight="700"><text x="74" y="76">A</text><text x="222" y="70">B</text></g></svg>
+              <p>每道刮痕都有獨立遮罩，可分別量測面積。語意分割則讓同類刮痕共用類別，不區分個體。</p>
+            </div>
+            <figcaption>教學示意。示意圖用同一塊金屬板。全景分割同時要求每像素的語意類別，並區分可計數物件的個體。</figcaption>
+          </figure>
+          <p>影像常以高度、寬度、通道表示。輸入可做縮放與正規化，資料增強需對應實際拍攝條件。相鄰影片幀或同一零件的近似影像應按群組切分，避免訓練與驗證集洩漏。</p>
+          <figure class="model-demo" id="cv-cnn" data-model-demo aria-labelledby="cv-cnn-title">
+            <h3 id="cv-cnn-title">模型圖 02 · 卷積、激活與池化</h3>
+            <div class="model-controls" data-model-controls role="group" aria-label="模型圖 02 · 卷積、激活與池化" hidden>
+              <button type="button" data-model-select="conv">卷積</button>
+              <button type="button" data-model-select="relu">ReLU</button>
+              <button type="button" data-model-select="pool">最大池化</button>
+            </div>
+            <div class="model-state" data-model-state="conv">
+              <strong>卷積</strong>
+              <div class="matrix-layout"><div class="matrix-wrap"><div class="matrix" style="--cols:2" role="img" aria-label="輸入視窗"><span class="highlight">1</span><span class="highlight">2</span><span class="highlight">3</span><span class="highlight">4</span></div><div class="matrix-caption">輸入視窗</div></div><span>×</span><div class="matrix-wrap"><div class="matrix" style="--cols:2" role="img" aria-label="濾波器"><span class="highlight">1</span><span>0</span><span>0</span><span class="highlight">-1</span></div><div class="matrix-caption">濾波器</div></div><span>→</span><div class="matrix-wrap"><div class="matrix" style="--cols:1" role="img" aria-label="輸出 −3"><span class="highlight">-3</span></div><div class="matrix-caption">輸出 −3</div></div></div>
+              <p>依元素相乘後相加，得到 1×1＋2×0＋3×0＋4×(−1)＝−3。此處採深度學習常用的互相關寫法。</p>
+            </div>
+            <div class="model-state" data-model-state="relu">
+              <strong>ReLU</strong>
+              <div class="matrix-layout"><div class="matrix-wrap"><div class="matrix" style="--cols:1" role="img" aria-label="激活前"><span>-3</span></div><div class="matrix-caption">激活前</div></div><span>→</span><div class="matrix-wrap"><div class="matrix" style="--cols:1" role="img" aria-label="激活後"><span class="highlight">0</span></div><div class="matrix-caption">激活後</div></div></div>
+              <p>修正線性單元（Rectified Linear Unit, ReLU）把負值截成零，加入非線性。</p>
+            </div>
+            <div class="model-state" data-model-state="pool">
+              <strong>最大池化</strong>
+              <div class="matrix-layout"><div class="matrix-wrap"><div class="matrix" style="--cols:2" role="img" aria-label="另一塊特徵視窗"><span>0</span><span>2</span><span class="highlight">5</span><span>1</span></div><div class="matrix-caption">另一塊特徵視窗</div></div><span>→</span><div class="matrix-wrap"><div class="matrix" style="--cols:1" role="img" aria-label="最大值 5"><span class="highlight">5</span></div><div class="matrix-caption">最大值 5</div></div></div>
+              <p>用另一個 2×2 特徵視窗示範池化。視窗只留下最大值，降低空間解析度。</p>
+            </div>
+            <figcaption>教學示意。矩陣為教學用數值。實際卷積輸出尺寸還受核心大小、填補、步幅與膨脹率影響。</figcaption>
+          </figure>
+          <p>卷積神經網路（Convolutional Neural Network, CNN）藉由局部濾波學特徵。Flatten 攤平成向量而不增加可訓練權重；Vision Transformer（ViT）則把影像區塊當作詞元來做注意力。小樣本時可評估預訓練模型的遷移學習（Transfer Learning）。</p>
+          <figure class="model-demo" id="cv-detectors" data-model-demo aria-labelledby="cv-detectors-title">
+            <h3 id="cv-detectors-title">模型圖 03 · 偵測架構在哪一步找框</h3>
+            <div class="model-controls" data-model-controls role="group" aria-label="模型圖 03 · 偵測架構在哪一步找框" hidden>
+              <button type="button" data-model-select="yolo">YOLO · 單階段</button>
+              <button type="button" data-model-select="rcnn">Faster R-CNN · 兩階段</button>
+            </div>
+            <div class="model-state" data-model-state="yolo">
+              <strong>YOLO · 單階段</strong>
+              <ol class="model-flow"><li><span class="step-index">01</span><strong>輸入影像</strong><span>提取特徵</span></li><li><span class="step-index">→ 02</span><strong>偵測頭</strong><span>直接預測邊界框與類別</span></li><li><span class="step-index">→ 03</span><strong>輸出</strong><span>篩選並保留偵測結果</span></li></ol>
+              <p>YOLO 類單階段模型直接做預測；部署時仍需實測延遲和漏檢。</p>
+            </div>
+            <div class="model-state" data-model-state="rcnn">
+              <strong>Faster R-CNN · 兩階段</strong>
+              <ol class="model-flow"><li><span class="step-index">01</span><strong>輸入影像</strong><span>提取共用特徵</span></li><li><span class="step-index">→ 02</span><strong>候選區域網路</strong><span>先找可能的物件區域</span></li><li><span class="step-index">→ 03</span><strong>區域預測</strong><span>對候選區域分類與細修框</span></li></ol>
+              <p>有獨立的候選區域階段，是與單階段的主要分界。</p>
+            </div>
+            <figcaption>教學示意。圖中省略骨幹細節、框篩選和訓練損失。</figcaption>
+          </figure>
+          <figure class="model-demo" id="cv-iou" aria-labelledby="cv-iou-title">
+            <h3 id="cv-iou-title">模型圖 04 · IoU 如何衡量框的位置</h3>
+            <div class="model-state">
+              <svg class="model-scene" viewBox="0 0 320 144" role="img" aria-label="實際框從 x40 到 x160，預測框從 x100 到 x220，兩框同高，重疊一半框寬。" xmlns="http://www.w3.org/2000/svg"><rect x="40" y="29" width="120" height="88" rx="2" fill="#c4d8fc" stroke="#2c559b" stroke-width="3"/><rect x="100" y="29" width="120" height="88" rx="2" fill="#f4caa9" fill-opacity=".62" stroke="#94482a" stroke-width="3"/><rect x="100" y="29" width="60" height="88" fill="#615884" fill-opacity=".62"/><text x="130" y="79" fill="white" text-anchor="middle" font-size="15">交集</text></svg><div class="diagram-key"><span>藍框 · 真值</span><span>橘框 · 預測</span><span>交疊區 · 交集</span></div>
+              <details class="preview" data-preview><summary>查看評估門檻</summary><p class="preview-panel">若匹配規則要求 IoU ≥ 0.5，圖中的預測框無法匹配。mAP 還需要整批預測的分數排序和匹配結果。</p></details>
+            </div>
+            <figcaption>教學示意。交並比（Intersection over Union, IoU）＝交集面積 ÷ 聯集面積。圖中兩框等大且重疊半個框，因此 IoU＝1/3。</figcaption>
+          </figure>
+          <p>精確率（Precision）衡量報警中有多少是真的，召回率（Recall）衡量實際瑕疵抓到多少。分割模型如 U-Net 可輸出像素預測；辨識（Recognition）還可依需求包含身分辨識，與單純的人臉偵測有不同的資料和權限要求。</p>
+          <p>產線驗收要同時看不同光線下的漏檢、誤報及端到端延遲。影像可能含人臉或其他個資，上線時須管理存取與保存；高風險結果可安排人工覆核。</p>
+        </section>
+        <section id="exam-focus">
+          <h2>考試重點與常見混淆</h2>
+          <div class="table-wrap" role="region" aria-label="考點表格，可水平捲動" tabindex="0">
+            <table>
+              <thead><tr><th scope="col">知識點</th><th scope="col">優先程度</th><th scope="col">判斷線索</th><th scope="col">依據</th></tr></thead>
+              <tbody>
+                <tr><td>分類、偵測、分割</td><td><span class="badge">優先掌握</span></td><td>看題目要類別、框、類別遮罩，還是個體遮罩。</td><td>【歷屆已考】<a href="#source-115">115 年第一次第 6、7 題</a>考分割。</td></tr>
+                <tr><td>單階段與兩階段</td><td><span class="badge">優先掌握</span></td><td>是否先產生候選區域。</td><td>【歷屆已考】<a href="#source-115">115 年第一次第 10 題</a>。</td></tr>
+                <tr><td>IoU 與 AP／mAP</td><td><span class="badge">優先掌握</span></td><td>IoU 比交集與聯集；AP 需整批偵測排序與匹配，mAP 依評估設定平均。</td><td>【歷屆已考】<a href="#source-114">114 年第二次第 7 題</a>。</td></tr>
+                <tr><td>影像資料與部署</td><td>重要理解</td><td>分開看資料品質、漏檢和端到端延遲。</td><td>【教材重點】<a href="#source-notes">講義第 19–24 頁</a>。</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note">優先程度為本站的學習排序。點選題號可在來源區開啟公告試題。</p>
+        </section>
+        <section id="practice">
+          <h2>練習題</h2>
+          <article class="question"><h3>第 1 題 · 任務選擇</h3><p class="meta">自編模擬題</p><p>要量測照片中每一道刮痕的像素面積，同類刮痕須各自分開。最適合什麼輸出？</p><ol type="A"><li>每張圖一個類別</li><li>每道刮痕一個邊界框</li><li>每道刮痕各自的像素遮罩</li><li>所有刮痕共用一張語意類別遮罩</li></ol></article>
+          <article class="question"><h3>第 2 題 · 架構比較</h3><p class="meta">自編模擬題</p><p>辨識一個偵測架構時，哪項線索最能判斷它是典型 Faster R-CNN 類兩階段模型？</p><ol type="A"><li>輸入經過正規化</li><li>候選區域先由網路產生，再分類和調整邊界框</li><li>模型輸出帶有分數</li><li>部署時在 GPU 推論</li></ol></article>
+          <article class="question"><h3>第 3 題 · 指標計算</h3><p class="meta">自編模擬題</p><p>預測框和真值框的面積各 40，交集面積為 20。兩框的 IoU 是多少？</p><ol type="A"><li>1/4</li><li>1/2</li><li>2/3</li><li>1/3</li></ol></article>
+          <p><a href="#answers">作答後前往章末解析 ↓</a></p>
+        </section>
+        <section id="review">
+          <h2>考前 3 分鐘複習</h2>
+          <ul><li>類別 → 分類；位置 → 偵測；像素 → 分割。</li><li>語意分割分像素類別，實例分割還辨同類個體。</li><li>卷積算局部特徵，池化做下採樣。</li><li>Faster R-CNN 先找候選區域。</li><li>IoU 分母用聯集，重疊區只算一次。</li><li>報警過多看精確率，漏掉瑕疵看召回率。</li></ul>
+        </section>
+        <section id="sources">
+          <h2>教材來源</h2>
+          <ul class="source-list">
+            <li>【官方評鑑】<a href="https://www.ipas.org.tw/api/proxy/uploads/certification_attachment/8039a24c849c4fb4a6dd7f942576d4f8/AI應用規劃師能力鑑定_評鑑內容範圍參考_11506_20260602161501.pdf">iPAS 評鑑內容範圍參考 115.06</a>，L21102。</li>
+            <li><a href="https://www.ipas.org.tw/api/proxy/uploads/certification_resource/bf93f438f7be48d295c1b40a34d79f3d/AI%E6%87%89%E7%94%A8%E8%A6%8F%E5%8A%83%E5%B8%AB%28%E4%B8%AD%E7%B4%9A%29-%E5%AD%B8%E7%BF%92%E6%8C%87%E5%BC%95-%E7%A7%91%E7%9B%AE1%E4%BA%BA%E5%B7%A5%E6%99%BA%E6%85%A7%E6%8A%80%E8%A1%93%E6%87%89%E7%94%A8%E8%A6%8F%E5%8A%83_20251222101833.pdf">iPAS 中級科目一學習指引</a>，印刷頁 3-40 至 3-58。</li>
+            <li id="source-notes">【教材重點】<a href="../material/iPAS%E4%B8%AD%E7%B4%9A_L21_3.2_%E9%9B%BB%E8%85%A6%E8%A6%96%E8%A6%BA%E6%8A%80%E8%A1%93%E8%88%87%E6%87%89%E7%94%A8_%E5%9C%96%E8%A7%A3%E7%B2%BE%E8%AE%80.pdf">3.2 電腦視覺技術與應用 圖解精讀 PDF</a>，第 2–6 頁任務與資料、第 7–18 頁模型與指標、第 19–24 頁應用。</li>
+            <li id="source-115">【歷屆已考】<a href="https://www.ipas.org.tw/api/proxy/uploads/certification_resource/bf93f438f7be48d295c1b40a34d79f3d/115%E5%B9%B4%E7%AC%AC%E4%B8%80%E6%AC%A1%E4%B8%AD%E7%B4%9AAI%E6%87%89%E7%94%A8%E8%A6%8F%E5%8A%83%E5%B8%AB_%E7%AC%AC%E4%B8%80%E7%A7%91_%E4%BA%BA%E5%B7%A5%E6%99%BA%E6%85%A7%E6%8A%80%E8%A1%93%E6%87%89%E7%94%A8%E8%88%87%E8%A6%8F%E5%8A%83_%E5%85%AC%E5%91%8A%E8%A9%A6%E9%A1%8C_20260615003359.pdf">115 年第一次中級科目一公告試題</a>，第 6、7、10 題。</li>
+            <li id="source-114">【歷屆已考】<a href="https://www.ipas.org.tw/api/proxy/uploads/certification_resource/bf93f438f7be48d295c1b40a34d79f3d/114%E5%B9%B4%E7%AC%AC%E4%BA%8C%E6%A2%AF%E6%AC%A1%E4%B8%AD%E7%B4%9AAI%E6%87%89%E7%94%A8%E8%A6%8F%E5%8A%83%E5%B8%AB%E7%AC%AC%E4%B8%80%E7%A7%91%E4%BA%BA%E5%B7%A5%E6%99%BA%E6%85%A7%E6%8A%80%E8%A1%93%E6%87%89%E7%94%A8%E8%88%87%E8%A6%8F%E5%8A%83%28%E7%95%B6%E6%AC%A1%E8%A9%A6%E9%A1%8C%E5%85%AC%E5%91%8A114_20251226000616.pdf">114 年第二次中級科目一公告試題</a>，第 7 題。</li>
+            <li>模型原始研究 <a href="https://arxiv.org/abs/1506.02640">YOLO</a>、<a href="https://arxiv.org/abs/1506.01497">Faster R-CNN</a>。</li>
+          </ul>
+        </section>
+        <section id="answers">
+          <h2>章末解析</h2>
+          <div class="answer-controls" data-answer-controls hidden>
+            <button type="button" value="open">展開全部</button><button type="button" value="close">收合全部</button>
+          </div>
+          <details class="answer"><summary>第 1 題解析</summary><p><strong>正確答案 C。</strong>實例分割可同時提供精確的像素區域與個體身分。</p><ol type="A"><li>分類只能指出整張圖的類別。</li><li>框的面積包含刮痕外的區域。</li><li>獨立遮罩可逐一道量測。</li><li>類別遮罩不區分同類個體。</li></ol><p><a href="#cv-output">回看對應模型圖</a></p></details>
+          <details class="answer"><summary>第 2 題解析</summary><p><strong>正確答案 B。</strong>候選區域階段和區域預測階段分開。</p><ol type="A"><li>各類模型都可正規化。</li><li>符合兩階段的工作分工。</li><li>單階段模型也會有分數。</li><li>硬體不能用來判斷模型階段。</li></ol><p><a href="#cv-detectors">回看對應模型圖</a></p></details>
+          <details class="answer"><summary>第 3 題解析</summary><p><strong>正確答案 D。</strong>聯集面積為 40＋40−20＝60，交集 20 除以 60 等於 1/3。</p><ol type="A"><li>1/4 把兩框面積直接相加，重複計入交集。</li><li>1/2 只用單一框作分母。</li><li>2/3 不是交集在聯集中的比例。</li><li>交集 20 除以聯集 60。</li></ol><p><a href="#cv-iou">回看對應模型圖</a></p></details>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer"><div class="frame"><p>iPAS 中級 · L21102</p><a href="../index.html#lessons">← 回章節索引</a></div></footer>
+</body>
+</html>
